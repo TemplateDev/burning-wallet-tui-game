@@ -82,10 +82,6 @@ export class PlayerState {
             this.money = Math.max(this.money - 200, 0);
         }
     }
-
-    skip() {
-        this?.onAction();
-    }
 }
 
 export class Game {
@@ -143,6 +139,14 @@ export class Game {
     // Get the player state
     getPlayer() {
         return this.player;
+    }
+
+    skipTurn() {
+        if (!this.inSession) { return; }
+        if (this.actionsLeft <= 0) { return; }
+
+        this.actionsLeft = 1;
+        this.update();
     }
 
     // Finishes the game and runs the callback

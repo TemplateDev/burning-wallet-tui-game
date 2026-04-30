@@ -1,17 +1,27 @@
 import { Text, Box, useInput } from 'ink';
 import { useState } from 'react';
 
-export function Menu({ onPlay, onExit }: { onPlay?: () => void; onExit?: () => void }) {
+export function Menu({
+    onPlay,
+    onTutorial,
+    onExit,
+}: {
+    onPlay?: () => void;
+    onTutorial?: () => void;
+    onExit?: () => void;
+}) {
     const [selected, setSelected] = useState(0);
 
     const setSelection = (callback: (prev: number) => number) => {
-        setSelected((prev) => Math.min(Math.max(callback(prev), 0), 1));
+        setSelected((prev) => Math.min(Math.max(callback(prev), 0), 2));
     };
 
     const applySelection = () => {
         if (selected === 0) {
             onPlay?.();
         } else if (selected === 1) {
+            onTutorial?.();
+        } else if (selected === 2) {
             onExit?.();
         }
     };
@@ -34,6 +44,9 @@ export function Menu({ onPlay, onExit }: { onPlay?: () => void; onExit?: () => v
                     <Text>+ Play</Text>
                 </Box>
                 <Box backgroundColor={selected === 1 ? '#ff5922' : ''}>
+                    <Text>+ Tutorial</Text>
+                </Box>
+                <Box backgroundColor={selected === 2 ? '#ff5922' : ''}>
                     <Text>+ Exit</Text>
                 </Box>
             </Box>

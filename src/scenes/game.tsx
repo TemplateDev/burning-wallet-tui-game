@@ -1,5 +1,5 @@
 import { Box, Text, useInput } from "ink";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGame, useScene, type GameResult } from "../contexts";
 
 type Mode = "root" | "earn" | "burn";
@@ -15,6 +15,19 @@ export function GameScene() {
   const [mode, setMode] = useState<Mode>("root");
   const [rootSelected, setRootSelected] = useState(0);
   const [subSelected, setSubSelected] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const [displayRound, setDisplayRound] = useState(1);
+  const [displayActionsLeft, setDisplayActionsLeft] = useState(2);
+  const [displayMoney, setDisplayMoney] = useState(0);
+  const [displayHeat, setDisplayHeat] = useState(0);
+
+  const lastSnapshotRef = useRef({
+    round: 1,
+    actionsLeft: 2,
+    money: 0,
+    heat: 0,
+  });
 
   useEffect(() => {
     game.newGame();
@@ -22,7 +35,57 @@ export function GameScene() {
     setMode("root");
     setRootSelected(0);
     setSubSelected(0);
+    setIsTransitioning(false);
+
+    const player = game.getPlayer();
+    const snapshot = {
+      round: game.getRound(),
+      actionsLeft: game.getActionsLeft(),
+      money: player.getMoney(),
+      heat: player.getHeat(),
+    };
+
+    lastSnapshotRef.current = snapshot;
+    setDisplayRound(snapshot.round);
+    setDisplayActionsLeft(snapshot.actionsLeft);
+    setDisplayMoney(snapshot.money);
+    setDisplayHeat(snapshot.heat);
   }, [game, setLastResult]);
+
+  const clampHeat = (heat: number) => Math.max(Math.min(heat, 100), 0);
+
+  const animateToSnapshot = (from: typeof lastSnapshotRef.current, to: typeof lastSnapshotRef.current) => {
+    setIsTransitioning(true);
+    setMode("root");
+    setSubSelected(0);
+
+    setDisplayRound(from.round);
+    setDisplayActionsLeft(from.actionsLeft);
+    setDisplayMoney(from.money);
+    setDisplayHeat(from.heat);
+
+    const durationMs = 900;
+    const stepMs = 45;
+    const steps = Math.max(1, Math.floor(durationMs / stepMs));
+    let step = 0;
+
+    const interval = setInterval(() => {
+      step += 1;
+      const t = Math.min(step / steps, 1);
+
+      const lerpInt = (a: number, b: number) => Math.round(a + (b - a) * t);
+
+      setDisplayRound(lerpInt(from.round, to.round));
+      setDisplayActionsLeft(lerpInt(from.actionsLeft, to.actionsLeft));
+      setDisplayMoney(lerpInt(from.money, to.money));
+      setDisplayHeat(lerpInt(from.heat, to.heat));
+
+      if (t >= 1) {
+        clearInterval(interval);
+        setIsTransitioning(false);
+      }
+    }, stepMs);
+  };
 
   const rootOptions: RootOption[] = ["SKIP", "EARN", "BURN"];
   const subOptions: SubOption[] = ["Small", "Big", "Back"];
@@ -54,10 +117,40 @@ export function GameScene() {
     goGameOver("lose");
   };
 
+  const maybeStartTurnTransition = () => {
+    if (!game.isInSession()) {
+      return;
+    }
+
+    const player = game.getPlayer();
+    const current = {
+      round: game.getRound(),
+      actionsLeft: game.getActionsLeft(),
+      money: player.getMoney(),
+      heat: player.getHeat(),
+    };
+
+    const prev = lastSnapshotRef.current;
+
+    const isTurnBoundary =
+      current.actionsLeft === 2 &&
+      current.round === prev.round + 1;
+
+    if (isTurnBoundary) {
+      animateToSnapshot(prev, current);
+    } else {
+      setDisplayRound(current.round);
+      setDisplayActionsLeft(current.actionsLeft);
+      setDisplayMoney(current.money);
+      setDisplayHeat(current.heat);
+    }
+  };
+
   const applyRoot = () => {
     const selected = rootOptions[rootSelected];
     if (selected === "SKIP") {
-      game.getPlayer().skip();
+      game.skipTurn();
+      maybeStartTurnTransition();
       checkEnd();
       return;
     }
@@ -89,6 +182,7 @@ export function GameScene() {
       } else {
         game.getPlayer().earnBig();
       }
+      maybeStartTurnTransition();
       checkEnd();
       return;
     }
@@ -99,11 +193,16 @@ export function GameScene() {
       } else {
         game.getPlayer().burnBig();
       }
+      maybeStartTurnTransition();
       checkEnd();
     }
   };
 
   useInput((_, key) => {
+    if (isTransitioning) {
+      return;
+    }
+
     if (mode === "root") {
       if (key.downArrow) {
         setRootSelected((prev) => clampIndex(prev + 1, rootOptions.length - 1));
@@ -132,6 +231,23 @@ export function GameScene() {
 
   const player = game.getPlayer();
 
+  const currentSnapshot = {
+    round: game.getRound(),
+    actionsLeft: game.getActionsLeft(),
+    money: player.getMoney(),
+    heat: player.getHeat(),
+  };
+
+  if (!isTransitioning) {
+    lastSnapshotRef.current = currentSnapshot;
+  }
+
+  const previewFor = (deltaMoney: number, deltaHeat: number) => {
+    const nextMoney = Math.max(displayMoney + deltaMoney, 0);
+    const nextHeat = clampHeat(displayHeat + deltaHeat);
+    return { nextMoney, nextHeat };
+  };
+
   return (
     <Box flexDirection="column" marginY={1}>
       <Text bold color="#ff5922">
@@ -140,11 +256,11 @@ export function GameScene() {
 
       <Box flexDirection="column" marginTop={1}>
         <Text>
-          Round: {game.getRound()} / 20
+          Round: {displayRound} / 20
         </Text>
-        <Text>Actions left: {game.getActionsLeft()}</Text>
-        <Text>Money: ${player.getMoney()}</Text>
-        <Text>Heat: {player.getHeat()}</Text>
+        <Text>Actions left: {displayActionsLeft}</Text>
+        <Text>Money: ${displayMoney}</Text>
+        <Text>Heat: {displayHeat}</Text>
       </Box>
 
       <Box flexDirection="column" marginTop={1}>
@@ -159,17 +275,50 @@ export function GameScene() {
         ) : (
           <>
             <Text>{mode === "earn" ? "EARN" : "BURN"}</Text>
-            {subOptions.map((opt, idx) => (
-              <Box key={opt} backgroundColor={idx === subSelected ? "#ff5922" : ""}>
-                <Text>+ {opt}</Text>
-              </Box>
-            ))}
+            {subOptions.map((opt, idx) => {
+              if (opt === "Back") {
+                return (
+                  <Box key={opt} backgroundColor={idx === subSelected ? "#ff5922" : ""}>
+                    <Text>+ {opt}</Text>
+                  </Box>
+                );
+              }
+
+              const isSmall = opt === "Small";
+
+              const deltaMoney = mode === "earn" ? (isSmall ? 50 : 120) : isSmall ? -50 : -100;
+              const deltaHeat = mode === "earn" ? (isSmall ? 10 : 25) : isSmall ? -10 : -25;
+
+              const preview = previewFor(deltaMoney, deltaHeat);
+
+              let staticDeltaMoney = "";
+              let staticDeltaHeat = "";
+
+              if (idx === subSelected) {
+                staticDeltaMoney = deltaMoney >= 0 ? `+$${deltaMoney}` : `-$${Math.abs(deltaMoney)}`;
+                staticDeltaHeat = deltaHeat >= 0 ? `+${deltaHeat} heat` : `-${Math.abs(deltaHeat)} heat`;
+              }
+
+              return (
+                <Box key={opt} backgroundColor={idx === subSelected ? "#ff5922" : ""}>
+                  <Text>
+                    + {opt} {staticDeltaMoney && `(${staticDeltaMoney}, ${staticDeltaHeat})`} =&gt; ${preview.nextMoney}, heat {preview.nextHeat}
+                  </Text>
+                </Box>
+              );
+            })}
             <Box marginTop={1}>
               <Text color="gray">Left arrow to go back</Text>
             </Box>
           </>
         )}
       </Box>
+
+      {isTransitioning && (
+        <Box marginTop={1}>
+          <Text color="gray">Ending turn...</Text>
+        </Box>
+      )}
     </Box>
   );
 }
