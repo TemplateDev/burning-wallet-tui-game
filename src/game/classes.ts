@@ -72,7 +72,7 @@ export class PlayerState {
 
     // Applys a penalty based on heat
     applyPenalty() {
-        if (this.heat >= 30) {
+        if (this.heat < 30) {
             this.money = Math.max(this.money - 50, 0);
         } else if (this.heat < 60) {
             this.money = Math.max(this.money - 100, 0);
@@ -81,6 +81,10 @@ export class PlayerState {
         } else {
             this.money = Math.max(this.money - 200, 0);
         }
+    }
+
+    skip() {
+        this?.onAction();
     }
 }
 
@@ -92,8 +96,10 @@ export class Game {
     private onWin: () => void;
     private onLose: () => void;
     private onPlayerAction: () => void;
+    private onChange: () => void;
 
-    constructor(onWin?: () => void, onLose?: () => void) {
+    constructor(onWin?: () => void, onLose?: () => void, onChange?: () => void) {
+        this.onChange = onChange || (() => {});
         this.onPlayerAction = () => this.update();
         this.player = new PlayerState(this.onPlayerAction);
         this.inSession = false;
@@ -109,13 +115,29 @@ export class Game {
         this.round = 1;
         this.actionsLeft = 2;
         this.inSession = true;
+        this?.onChange();
     }
 
     private update() {
         this.actionsLeft -= 1;
         if (this.actionsLeft == 0) {
             this.nextRound();
+            return;
         }
+
+        this?.onChange();
+    }
+
+    getRound(): number {
+        return this.round;
+    }
+
+    getActionsLeft(): number {
+        return this.actionsLeft;
+    }
+
+    isInSession(): boolean {
+        return this.inSession;
     }
 
     // Get the player state
@@ -128,6 +150,7 @@ export class Game {
         if (!this.inSession) { return; }
         this.inSession = false;
         this?.onWin();
+        this?.onChange();
     }
 
     // Finishes the game and runs the callback
@@ -135,6 +158,7 @@ export class Game {
         if (!this.inSession) { return; }
         this.inSession = false;
         this?.onLose();
+        this?.onChange();
     }
 
     // Progresses the game and applies the penalty.
@@ -156,5 +180,7 @@ export class Game {
         // Increase the round
         this.round += 1;
         this.actionsLeft = 2;
+
+        this?.onChange();
     }
 }

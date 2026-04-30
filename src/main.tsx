@@ -1,17 +1,21 @@
 import './game/runtime';
-import { TitleScreen, Tutorial } from './scenes';
-import { SceneProvider } from './contexts';
+import { TitleScreen, Tutorial, GameScene, GameOver } from './scenes';
+import { GameProvider, SceneProvider } from './contexts';
 import { render } from 'ink';
 
 function App() {
     return (
-        <SceneProvider
-            scenes={{
-                title: <TitleScreen />,
-                tutorial: <Tutorial />
-            }}
-            initialScene='title'
-        />
+        <GameProvider>
+            <SceneProvider
+                scenes={{
+                    title: <TitleScreen />,
+                    tutorial: <Tutorial />,
+                    game: <GameScene />,
+                    gameOver: <GameOver />,
+                }}
+                initialScene='title'
+            />
+        </GameProvider>
     );
 }
 

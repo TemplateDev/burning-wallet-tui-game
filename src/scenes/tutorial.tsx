@@ -3,5 +3,5 @@ import { Instructions } from "../components";
 
 export function Tutorial() {
     const { setActiveScene } = useScene();
-    return <Instructions onFinished={() => setActiveScene("title")} />;
+    return <Instructions onFinished={() => setActiveScene("game")} />;
 }
