@@ -1,5 +1,5 @@
-import { TitleScreen, Tutorial, GameScene, GameOver } from './scenes';
-import { GameProvider, SceneProvider } from './contexts';
+import { TitleScreen, Tutorial, GameScene, GameOver } from './scenes/index.js';
+import { GameProvider, SceneProvider } from './contexts/index.js';
 import { render } from 'ink';
 
 function App() {

@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import { Game } from "../game/classes";
+import { Game } from "../game/classes.js";
 
 export type GameResult = {
   outcome: "win" | "lose";

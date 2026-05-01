@@ -1,5 +1,5 @@
 import { Box, Text, useInput } from "ink";
-import { useScene, useGame } from "../contexts";
+import { useScene, useGame } from "../contexts/index.js";
 
 export function GameOver() {
   const { setActiveScene } = useScene();

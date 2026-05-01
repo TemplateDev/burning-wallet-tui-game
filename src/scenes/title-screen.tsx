@@ -1,5 +1,5 @@
-import { Menu } from "../components";
-import { useScene } from "../contexts";
+import { Menu } from "../components/index.js";
+import { useScene } from "../contexts/index.js";
 import { useApp } from "ink";
 
 export function TitleScreen() {

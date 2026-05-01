@@ -1,7 +1,7 @@
 import { Box, Text, useInput } from "ink";
 import { useEffect, useRef, useState } from "react";
-import { useGame, useScene, type GameResult } from "../contexts";
-import { loadConfig } from "../config/loader";
+import { useGame, useScene, type GameResult } from "../contexts/index.js";
+import { loadConfig } from "../config/loader.js";
 
 type Mode = "root" | "earn" | "burn";
 

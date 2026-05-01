@@ -1,2 +1,2 @@
-export * from './scene-provider';
-export * from './game-provider';
+export * from './scene-provider.js';
+export * from './game-provider.js';

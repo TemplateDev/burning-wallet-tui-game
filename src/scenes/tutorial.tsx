@@ -1,5 +1,5 @@
-import { useScene } from "../contexts";
-import { Instructions } from "../components";
+import { useScene } from "../contexts/index.js";
+import { Instructions } from "../components/index.js";
 
 export function Tutorial() {
     const { setActiveScene } = useScene();

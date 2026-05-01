@@ -1,2 +1,2 @@
-export { Menu } from './menu';
-export { Instructions } from './instructions';
+export { Menu } from './menu.js';
+export { Instructions } from './instructions.js';

@@ -1,4 +1,4 @@
-import { loadConfig, type GameConfig } from "../config/loader";
+import { loadConfig, type GameConfig } from "../config/loader.js";
 
 export class PlayerState {
     private config: GameConfig;

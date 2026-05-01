@@ -1,4 +1,4 @@
-export { TitleScreen } from "./title-screen";
-export { Tutorial } from "./tutorial";
-export { GameScene } from "./game";
-export { GameOver } from "./game-over";
+export { TitleScreen } from "./title-screen.js";
+export { Tutorial } from "./tutorial.js";
+export { GameScene } from "./game.js";
+export { GameOver } from "./game-over.js";
