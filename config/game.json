@@ -1,0 +1,33 @@
+{
+  "initialMoney": 650,
+  "initialHeat": 25,
+  "actionsPerRound": 2,
+  "targetRound": 20,
+  "heat": {
+    "earnSmall": 10,
+    "earnBig": 35,
+    "burnSmall": -15,
+    "burnBig": -25
+  },
+  "money": {
+    "earnSmall": 50,
+    "earnBig": 150,
+    "burnSmall": -50,
+    "burnBig": -200
+  },
+  "heatIncreasePerRound": 3,
+  "penalty": [
+    { "threshold": 30, "loss": 20 },
+    { "threshold": 60, "loss": 50 },
+    { "threshold": 80, "loss": 100 },
+    { "threshold": 90, "loss": 180 },
+    { "threshold": 101, "loss": 360 }
+  ],
+  "skipTiers": [
+    { "threshold": 30, "reduction": 2 },
+    { "threshold": 60, "reduction": 7 },
+    { "threshold": 80, "reduction": 10 },
+    { "threshold": 90, "reduction": 16 },
+    { "threshold": 101, "reduction": 24 }
+  ]
+}

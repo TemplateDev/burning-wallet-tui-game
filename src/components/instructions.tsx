@@ -20,7 +20,7 @@ const instructions = [
         "You can make two actions per round."
     ],
     [
-        "SKIP will simply let the burn continue.",
+        "SKIP will cancel all actions for the round and reduces heat based on current level.",
         "EARN will give you money but also increase the burn rate.",
         "BURN will reduce the burn rate but cost you money."
     ],

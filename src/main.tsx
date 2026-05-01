@@ -1,4 +1,3 @@
-import './game/runtime';
 import { TitleScreen, Tutorial, GameScene, GameOver } from './scenes';
 import { GameProvider, SceneProvider } from './contexts';
 import { render } from 'ink';

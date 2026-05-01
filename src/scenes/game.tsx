@@ -1,6 +1,7 @@
 import { Box, Text, useInput } from "ink";
 import { useEffect, useRef, useState } from "react";
 import { useGame, useScene, type GameResult } from "../contexts";
+import { loadConfig } from "../config/loader";
 
 type Mode = "root" | "earn" | "burn";
 
@@ -17,14 +18,16 @@ export function GameScene() {
   const [subSelected, setSubSelected] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  const config = loadConfig();
+
   const [displayRound, setDisplayRound] = useState(1);
-  const [displayActionsLeft, setDisplayActionsLeft] = useState(2);
+  const [displayActionsLeft, setDisplayActionsLeft] = useState(config.actionsPerRound);
   const [displayMoney, setDisplayMoney] = useState(0);
   const [displayHeat, setDisplayHeat] = useState(0);
 
   const lastSnapshotRef = useRef({
     round: 1,
-    actionsLeft: 2,
+    actionsLeft: config.actionsPerRound,
     money: 0,
     heat: 0,
   });
@@ -195,6 +198,7 @@ export function GameScene() {
       }
       maybeStartTurnTransition();
       checkEnd();
+      return;
     }
   };
 
@@ -256,7 +260,7 @@ export function GameScene() {
 
       <Box flexDirection="column" marginTop={1}>
         <Text>
-          Round: {displayRound} / 20
+          Round: {displayRound} / {config.targetRound}
         </Text>
         <Text>Actions left: {displayActionsLeft}</Text>
         <Text>Money: ${displayMoney}</Text>
@@ -286,8 +290,12 @@ export function GameScene() {
 
               const isSmall = opt === "Small";
 
-              const deltaMoney = mode === "earn" ? (isSmall ? 50 : 120) : isSmall ? -50 : -100;
-              const deltaHeat = mode === "earn" ? (isSmall ? 10 : 25) : isSmall ? -10 : -25;
+              const deltaMoney = mode === "earn"
+                ? (isSmall ? config.money.earnSmall : config.money.earnBig)
+                : (isSmall ? config.money.burnSmall : config.money.burnBig);
+              const deltaHeat = mode === "earn"
+                ? (isSmall ? config.heat.earnSmall : config.heat.earnBig)
+                : (isSmall ? config.heat.burnSmall : config.heat.burnBig);
 
               const preview = previewFor(deltaMoney, deltaHeat);
 
